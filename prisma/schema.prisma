@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  bpReadings BpReading[]
+  sessions   Session[]
+  
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  sessionToken String @unique @map("session_token")
+  userId    Int      @map("user_id")
+  expires   DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("sessions")
+}
+
+model BpReading {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @map("user_id")
+  readingDate     DateTime @map("reading_date")
+  readingTime     String   @map("reading_time")
+  readingDatetime DateTime @map("reading_datetime")
+  systolic        Int
+  diastolic       Int
+  heartRate       Int?     @map("heart_rate")
+  category        String
+  createdAt       DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+  
+  // Constraints
+  @@unique([userId, readingDatetime])
+  @@index([userId, readingDatetime])
+  @@index([userId, readingDate])
+  @@map("bp_readings")
+}
