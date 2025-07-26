@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: bp-monitor-app
+    name: blood-pressure-monitor
     env: node
     plan: free
     buildCommand: pnpm install && pnpm run db:generate && pnpm run build
@@ -15,7 +15,7 @@ services:
       - key: NEXTAUTH_SECRET
         value: HQoLfbRWO7sGkIQUyY7wAvDbwbCONnjG6Jd7+RYN66U=
       - key: NEXTAUTH_URL
-        value: https://bp-monitor-app.onrender.com
+        value: https://blood-pressure-monitor.onrender.com
 
 databases:
   - name: bp-monitor-db
