@@ -77,30 +77,27 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export function BPChart({ readings }: BPChartProps) {
   const chartData = readings
     .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime())
-    .map((reading, index) => ({
-      date: new Date(reading.datetime).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        ...(readings.length <= 7 ? { 
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false 
-        } : {})
-      }),
-      fullDate: new Date(reading.datetime).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false
-      }),
-      systolic: reading.systolic,
-      diastolic: reading.diastolic,
-      heartRate: reading.heartRate || null,
-      category: reading.category,
-      index: index
-    }))
+    .map((reading, index) => {
+      // Extract date and time parts to avoid timezone issues
+      const dateTime = reading.datetime;
+      const [datePart, timePart] = dateTime.split('T');
+      const timeOnly = timePart ? timePart.substring(0, 5) : '00:00'; // Get HH:MM format
+      
+      // Parse date parts manually to avoid timezone conversion
+      const [year, month, day] = datePart.split('-');
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const monthName = monthNames[parseInt(month) - 1];
+      
+      return {
+        date: `${day} ${monthName} ${timeOnly}`,
+        fullDate: `${day} ${monthName} ${year} ${timeOnly}`,
+        systolic: reading.systolic,
+        diastolic: reading.diastolic,
+        heartRate: reading.heartRate || null,
+        category: reading.category,
+        index: index
+      };
+    });
 
   if (readings.length === 0) {
     return (
