@@ -40,8 +40,8 @@ function BloodPressureMonitorContent() {
   const [diastolic, setDiastolic] = useState("")
   const [heartRate, setHeartRate] = useState("")
   const [weeklyAdvice, setWeeklyAdvice] = useState<WeeklyAdvice | null>(null)
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0])
-  const [selectedTime, setSelectedTime] = useState(new Date().toTimeString().slice(0, 5))
+  const [selectedDate, setSelectedDate] = useState("")
+  const [selectedTime, setSelectedTime] = useState("")
   const [isExporting, setIsExporting] = useState(false)
 
   // Helper function to get auth headers
@@ -82,6 +82,11 @@ function BloodPressureMonitorContent() {
 
   // Mount effect
   useEffect(() => {
+    // Set initial date and time on client side to avoid hydration mismatch
+    const now = new Date()
+    setSelectedDate(now.toISOString().split("T")[0])
+    setSelectedTime(now.toTimeString().slice(0, 5))
+    
     if (user) {
       loadReadings()
     }
@@ -526,7 +531,7 @@ function BloodPressureMonitorContent() {
                           <div className="grid grid-cols-2 gap-4">
                             <div className="text-center p-3 bg-white rounded-lg shadow-sm">
                               <div className="flex items-center justify-center gap-2 mb-1">
-                                <div className="text-2xl font-bold text-gray-900">{latestReading.systolic}/{latestReading.diastolic}</div>
+                                <div className="text-2xl font-bold text-red-600">{latestReading.systolic}/{latestReading.diastolic}</div>
                                 {previousReading && (
                                   <div className="flex flex-col items-center">
                                     {systolicTrend !== 0 && (
@@ -548,11 +553,15 @@ function BloodPressureMonitorContent() {
                               </div>
                               <div className="text-xs text-gray-600 mb-2">Blood Pressure (mmHg)</div>
                               <div className="flex justify-center">
-                                <Badge variant="outline" className={`text-xs ${
-                                  latestReading.category === "Normal" ? "bg-green-100 text-green-800 border-green-300" :
-                                  latestReading.category === "Elevated" ? "bg-yellow-100 text-yellow-800 border-yellow-300" :
-                                  latestReading.category.includes("Stage 1") ? "bg-orange-100 text-orange-800 border-orange-300" :
-                                  "bg-red-100 text-red-800 border-red-300"
+                                <Badge variant={
+                                  latestReading.category === "Normal" ? "default" :
+                                  latestReading.category === "Elevated" ? "secondary" :
+                                  "destructive"
+                                } className={`text-xs ${
+                                  latestReading.category === "Normal" ? "bg-green-100 text-green-800" :
+                                  latestReading.category === "Elevated" ? "bg-yellow-100 text-yellow-800" :
+                                  latestReading.category.includes("Stage 1") ? "bg-orange-100 text-orange-800" :
+                                  "bg-red-100 text-red-800"
                                 }`}>
                                   {latestReading.category}
                                 </Badge>
@@ -562,7 +571,7 @@ function BloodPressureMonitorContent() {
                             {latestReading.heartRate ? (
                               <div className="text-center p-3 bg-white rounded-lg shadow-sm">
                                 <div className="flex items-center justify-center gap-2 mb-1">
-                                  <div className="text-2xl font-bold text-gray-900">{latestReading.heartRate}</div>
+                                  <div className="text-2xl font-bold text-green-600">{latestReading.heartRate}</div>
                                   {previousReading?.heartRate && hrTrend !== 0 && (
                                     <span className={`text-xs flex items-center ${
                                       hrTrend > 0 ? 'text-orange-500' : 'text-blue-500'
@@ -574,9 +583,9 @@ function BloodPressureMonitorContent() {
                                 <div className="text-xs text-gray-600 mb-2">Heart Rate (bpm)</div>
                                 <div className="flex justify-center">
                                   <Badge variant="outline" className={`text-xs ${
-                                    classifyHeartRate(latestReading.heartRate) === "Normal" ? "bg-green-100 text-green-800 border-green-300" :
-                                    classifyHeartRate(latestReading.heartRate) === "Low" ? "bg-yellow-100 text-yellow-800 border-yellow-300" :
-                                    "bg-red-100 text-red-800 border-red-300"
+                                    classifyHeartRate(latestReading.heartRate) === "Normal" ? "bg-green-100 text-green-800" :
+                                    classifyHeartRate(latestReading.heartRate) === "Low" ? "bg-yellow-100 text-yellow-800" :
+                                    "bg-red-100 text-red-800"
                                   }`}>
                                     {classifyHeartRate(latestReading.heartRate)}
                                   </Badge>
@@ -635,18 +644,18 @@ function BloodPressureMonitorContent() {
                           <div className="p-4 bg-gradient-to-br from-green-50 to-blue-50 rounded-lg border border-green-200">
                             <div className="flex items-center justify-center gap-2 mb-3">
                               <span className="text-sm font-medium text-gray-700">Recent 7 Days</span>
-                              <Badge variant="outline" className="text-xs bg-white">
+                              <Badge variant="outline" className="text-xs">
                                 {recentReadings.length}
                               </Badge>
                             </div>
                             <div className="space-y-3">
                               <div className="text-center">
-                                <div className="text-lg font-bold text-gray-900">{recentAvgSystolic}/{recentAvgDiastolic}</div>
+                                <div className="text-lg font-bold text-blue-600">{recentAvgSystolic}/{recentAvgDiastolic}</div>
                                 <div className="text-xs text-gray-600">Avg BP</div>
                               </div>
                               {recentAvgHeartRate && (
                                 <div className="text-center">
-                                  <div className="text-lg font-bold text-gray-900">{recentAvgHeartRate} bpm</div>
+                                  <div className="text-lg font-bold text-green-600">{recentAvgHeartRate} bpm</div>
                                   <div className="text-xs text-gray-600">Avg HR</div>
                                 </div>
                               )}
@@ -665,18 +674,18 @@ function BloodPressureMonitorContent() {
                           <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-200">
                             <div className="flex items-center justify-center gap-2 mb-3">
                               <span className="text-sm font-medium text-gray-700">Overall Stats</span>
-                              <Badge variant="outline" className="text-xs bg-white">
+                              <Badge variant="outline" className="text-xs">
                                 {readings.length}
                               </Badge>
                             </div>
                             <div className="space-y-3">
                               <div className="text-center">
-                                <div className="text-lg font-bold text-gray-900">{avgSystolic}/{avgDiastolic}</div>
+                                <div className="text-lg font-bold text-purple-600">{avgSystolic}/{avgDiastolic}</div>
                                 <div className="text-xs text-gray-600">Avg BP</div>
                               </div>
                               {avgHeartRate && (
                                 <div className="text-center">
-                                  <div className="text-lg font-bold text-gray-900">{avgHeartRate} bpm</div>
+                                  <div className="text-lg font-bold text-green-600">{avgHeartRate} bpm</div>
                                   <div className="text-xs text-gray-600">Avg HR</div>
                                 </div>
                               )}

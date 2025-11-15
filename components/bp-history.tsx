@@ -21,6 +21,22 @@ interface BPHistoryProps {
   onDeleteReading?: (reading: BPReading) => void
 }
 
+// Safe date formatting that won't cause hydration mismatches
+const formatDateSafe = (dateString: string): string => {
+  try {
+    // Use consistent formatting that works the same on server and client
+    const date = new Date(dateString)
+    // Use toISOString and format manually to ensure consistency
+    const day = date.getDate().toString().padStart(2, '0')
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const year = date.getFullYear()
+    return `${day}/${month}/${year}`
+  } catch {
+    // Fallback to original string if parsing fails
+    return dateString
+  }
+}
+
 export function BPHistory({ readings, getCategoryColor, onDeleteReading }: BPHistoryProps) {
   if (readings.length === 0) {
     return (
@@ -40,10 +56,10 @@ export function BPHistory({ readings, getCategoryColor, onDeleteReading }: BPHis
   return (
     <div className="space-y-3 max-h-64 overflow-y-auto">
       {sortedReadings.map((reading, index) => (
-        <div key={reading.datetime || `${reading.date}-${reading.time}-${index}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
+        <div key={reading.id || `${reading.date}-${reading.time}-${index}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
           <div className="flex items-center gap-3">
             <div className="text-sm text-gray-600">
-              <div>{new Date(reading.date).toLocaleDateString("en-GB")}</div>
+              <div>{formatDateSafe(reading.date)}</div>
               <div className="text-xs text-gray-500">{reading.time}</div>
             </div>
             <div className="font-semibold">
