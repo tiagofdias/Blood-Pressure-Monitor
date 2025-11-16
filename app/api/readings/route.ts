@@ -107,6 +107,8 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const readingId = searchParams.get('id')
 
+    console.log('DELETE request - readingId:', readingId, 'userId:', user.id)
+
     if (!readingId) {
       return NextResponse.json({ error: "Reading ID is required" }, { status: 400 })
     }
@@ -119,16 +121,20 @@ export async function DELETE(request: NextRequest) {
       }
     })
 
+    console.log('Found reading:', reading ? `id=${reading.id}` : 'NOT FOUND')
+
     if (!reading) {
       return NextResponse.json({ error: "Reading not found or unauthorized" }, { status: 404 })
     }
 
-    // Delete the reading
+    // Delete the reading (use the reading.id to ensure we delete the exact record we verified)
     await prisma.bpReading.delete({
       where: {
-        id: parseInt(readingId)
+        id: reading.id
       }
     })
+
+    console.log('Successfully deleted reading:', reading.id)
 
     return NextResponse.json({ success: true, message: "Reading deleted successfully" })
   } catch (error) {
